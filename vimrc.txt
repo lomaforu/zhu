@@ -1,0 +1,83 @@
+
+set nocompatible
+filetype off
+
+set rtp+=~/.vim/bundle/vundle/
+call vundle#rc()
+Bundle 'gmarick/vundle'
+Bundle 'https://github.com/scrooloose/nerdtree'
+Bundle 'taglist.vim'
+Bundle 'https://github.com/Rip-Rip/clang_complete'
+Bundle 'majutsushi/tagbar'
+Bundle 'a.vim'
+Bundle 'SuperTab'
+
+language messages zh_CN.utf-8
+
+set shortmess=atI
+set nu
+syntax on
+set showcmd
+set foldenable
+set foldmethod=indent
+set nocompatible
+set mouse=a
+set nobackup
+set scrolloff=3
+set cursorline
+set smarttab
+set nowrap
+set noexpandtab
+
+set cindent
+set tabstop=4
+set autoindent
+set softtabstop=4
+set shiftwidth=4
+
+set cinoptions={0,:0,g0,l1,t0,(0
+							   
+
+if &term=="xterm"
+	set t_Co=8
+	set t_Sb=^[[4%dm
+	set t_Sf=^[[3%dm
+endif
+
+"ctag
+set tags=tags;
+set autochdir
+
+set whichwrap+=<,>,h,l
+set backspace=indent,eol,start
+set encoding=utf-8
+set fenc=utf-8
+set fileencoding=utf-8
+set wmnu wildmode=longest:full
+"set lcs=eol:$,tab:\|\
+
+"move to right window
+noremap <c-l> <c-w>l
+"move to up window
+noremap <c-k> <c-w>k
+"move to down window
+noremap <c-j> <c-w>j
+"move to left window
+noremap <c-h> <c-w>h
+"
+nnoremap <silent> <F2> :A<CR>
+map <F3> :NERDTreeToggle<CR>
+map <F4> :TagbarToggle<CR>
+
+let g:SuperTabRetainCompletionType=2
+
+"let g:clang_complete_copen=1
+"let g:clang_periodic_quickfix=1
+"let g:clang_snippets=1
+"let g:clang_close_preview=1
+"let g:clang_use_library=1
+"let g:clang_user_options='-stdlib=libc++ -std=c++11 -IIncludePath'
+
+filetype plugin on 
+let g:pydiction_location='~/.vim/tools/pydiction/complete-dict'
+let g:pydiction_menu_height=15

@@ -1,96 +1,42 @@
-include ../../comm.mk
 
 PWD=$(shell pwd)
 
-ifeq ("$(RELEASE_PATH)/","/")
-RELEASE_PATH=$(PWD)
-endif
+ACE_PATH=/public/ocs_ah/src/third/ACE_5_6
 
-ifeq ("$(PROJECT_RPATH)/","/")
-PROJECT_RPATH=$(PWD)
-endif
+COMMON_INCS:=-I$(PWD)/inc -I$(ACE_PATH)/include
+COMMON_LIBS:=-L$(ACE_PATH)/lib -lACE
 
-INTERFACE_PATH=/public/ocs_ah/src_cloud/interface
-DCFSERVICE_PATH=/public/ocs_ah/src_cloud/third/DCFService
+BIN_PATH=$(PWD)/bin
+OBJS_PATH=$(PWD)/obj
+SRCS_PATH=$(PWD)/src
 
-# set source directory
-SRCPATH=$(PWD)/src
-BUILDPATH=$(PWD)/$(BUILD_PATH)
-BINPATH=$(PWD)/bin
+SRCS_FILES:=test.cpp CPerson.cpp
+#SRCS=$(foreach var,$(filter %.cpp, $(SRCS_FILES)),$(SRCS_PATH)/$(var))
 
-# we should write .cpp or .pc files to here
-FILES=transmitabm.cpp CProxyConfig.cpp CProxyManager.cpp CPairList.cpp CThreadProcess.cpp TThread.cpp CThreadProxyAbm.cpp DCExchDB.cpp DCABMClient.cpp
+BIN=$(BIN_PATH)/test
 
+OBJS=$(foreach var,$(basename $(SRCS_FILES)),$(OBJS_PATH)/$(var).o)
 
-# set COMMON_INCS and COMMON_LIBS
-COMMON_INCS:=-I$(PWD)/inc -I$(INTERFACE_PATH)/include -I$(DFM)/include  -I$(ITF)/include  -I$(TXML)/include  -I$(AVRO)/include -I$(DCC_INC_PATH) -I$(MQ)/include -I$(ZMQ)/include -I$(DCLOGCLI)/include -I$(DCFSERVICE_PATH)/include
+FLAGS=-Wall -Wno-format -DLINUX -DACE_LACKS_PRAGMA_ONCE -DACE_HAS_INLINED_OSCALLS
 
-COMMON_LIBS:=-L$(DCFSERVICE_PATH)/lib -L$(DFM)/lib -L$(TXML)/lib -L$(DCC_LIB_PATH) -L$(MQ)/lib -L$(ZMQ)/lib -L$(SODIUM)/lib -L$(PGM)/lib -L$(DCLOGCLI)/lib -L$(AVRO)/lib
+all:$(BIN)
 
-#$(info $(DCLOGCLI))
-#$(info $(DFM))
+${BIN}:$(OBJS)
+	$(call create_directory, $(BIN_PATH))
+	g++ $(FLAGS) -o $@ $^ $(COMMON_LIBS)
 
+$(OBJS):$(OBJS_PATH)/%.o:$(SRCS_PATH)/%.cpp
+	$(call create_directory, $(OBJS_PATH))
+	g++ -c $(FLAGS) $< -o $@ $(COMMON_INCS)
 
-# set link library name
-LinkLibPath=$(COMMON_LIBS)
-LinkLibs=  -ltinyxml -ldfm -ldcc -ldcmq -lzmq -lsodium -lpgm -lpthread -lrocketmq64 -ldclogcli -lavrocpp_s -ldcfservice
-
-# automatic obtain .cpp and .o files
-# obtain .cpp files from FILES
-SRCS=$(call GetCC, $(SRCPATH), $(FILES))
-# obtain .o files from FILES
-OBJS=$(call GetObj, $(BUILDPATH), $(FILES))
-# obtain .cpp files from .pc files
-PCCSRCS=$(call GetPCC, $(SRCPATH), $(FILES))
-# obtain .d from .cpp files
-DEPD=$(subst .cpp,.d, $(SRCS) $(PCCSRCS))
-
-#set bin names
-
-BIN=$(BINPATH)/transmitabm
-
-# create build directory
-tmpvar:=$(call CreateDir, $(BUILDPATH))
-#tmpvar=$(call CreateDir, $(RELEASE_PATH)/bin)
-tmpvar:=$(call CreateDir, $(RELEASE_PATH)/lib)
-tmpvar:=$(call CreateDir, $(BINPATH))
-
-
-.PHONY: all clean distclean dup
-all: $(BIN)
-
-# we should use copy more than move
-$(BIN):$(OBJS)
-	$(CC) $(LFLAGS) -o $@ $^ $(LinkLibPath) $(LinkLibs)
-	
 clean:
-	@- rm -f  $(OBJS) 
+	-rm -f core $(OBJS) $(BIN)
 
-distclean:clean
-	@- rm -rf $(DEPD) $(BUILDPATH)
-	
-dup:
-	@cp -pf $(BIN) $(PROJECT_RPATH)/bin && \
-	echo "dup $(BIN) to $(PROJECT_RPATH)/bin"
-	
-# include .d files for trace .h files
-ifeq "$(DEPFLAG)" "0"
-include $(DEPD)
-endif
-	
-# useful rules ######################################################################
-# we should supply OBJS, PCCSRCS, BUILDPATH, SRCPATH and COMMON_INCS  to use them.
-# for compile .cpp
-$(OBJS):$(BUILDPATH)/%.o:$(SRCPATH)/%.cpp
-	cd $(SRCPATH) && \
-	$(CC) $(CXXFLAGS) $(COMMON_INCS) -c $(<F) -o $@
-	
-# for compile .pc
-$(PCCSRCS):$(SRCPATH)/%.cpp:$(SRCPATH)/%.pc	
-	cd $(SRCPATH) && \
-	$(PCC) $(PCCFLAGS) iname=$(<F) oname=$@
+define create_directory
+	test -d $(1) || mkdir -p $(1)
+endef
 
-# for name.o -> /path/name.o
-%.o:$(BUILDPATH)/%.o
-
-# useful rules ######################################################################
+define append_directory
+	$(foreach var,$(filter %.cpp, $(2)),$(3)/$(var))
+	$(1) = $$(var)
+endef

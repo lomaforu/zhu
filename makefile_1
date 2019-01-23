@@ -1,3 +1,6 @@
+create_directory=$(shell test -d $(1) || mkdir -p $(1))
+
+append_directory=$(foreach var,$(filter %.cpp, $(1)),$(2)/$(var))
 
 PWD=$(shell pwd)
 
@@ -11,7 +14,11 @@ OBJS_PATH=$(PWD)/obj
 SRCS_PATH=$(PWD)/src
 
 SRCS_FILES:=test.cpp CPerson.cpp
-#SRCS=$(foreach var,$(filter %.cpp, $(SRCS_FILES)),$(SRCS_PATH)/$(var))
+SRCS=$(call append_directory,$(SRCS_FILES),$(SRCS_PATH))
+
+tempval:=$(call create_directory,$(BIN_PATH))
+tempval:=$(call create_directory, $(OBJS_PATH))
+
 
 BIN=$(BIN_PATH)/test
 
@@ -22,21 +29,12 @@ FLAGS=-Wall -Wno-format -DLINUX -DACE_LACKS_PRAGMA_ONCE -DACE_HAS_INLINED_OSCALL
 all:$(BIN)
 
 ${BIN}:$(OBJS)
-	$(call create_directory, $(BIN_PATH))
 	g++ $(FLAGS) -o $@ $^ $(COMMON_LIBS)
 
 $(OBJS):$(OBJS_PATH)/%.o:$(SRCS_PATH)/%.cpp
-	$(call create_directory, $(OBJS_PATH))
 	g++ -c $(FLAGS) $< -o $@ $(COMMON_INCS)
 
 clean:
 	-rm -f core $(OBJS) $(BIN)
 
-define create_directory
-	test -d $(1) || mkdir -p $(1)
-endef
 
-define append_directory
-	$(foreach var,$(filter %.cpp, $(2)),$(3)/$(var))
-	$(1) = $$(var)
-endef

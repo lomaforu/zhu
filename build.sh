@@ -12,12 +12,12 @@ if [ $numb > 3 ]; then
 			cmake ..
 			make -j 16
 		else
-			echo 'no find folder:'$path''
+			echo 'not exits folder:'$path''
 		fi
 	else
-		echo 'no build folder:'$path''
+		echo 'find no build folder:'$path''
 	fi
 else
-	echo 'folder layer too lower'
+	echo 'folder layer less 4'
 fi
 
